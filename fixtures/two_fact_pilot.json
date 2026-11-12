@@ -1,0 +1,62 @@
+{
+  "fixture_label": "TEST FIXTURE — ALL ENTITIES AND FACTS ARE INVENTED",
+  "fixture_version": "two-fact-pilot-v1",
+  "items": [
+    {
+      "item_id": "veloran",
+      "entity": "Veloran Conservatory",
+      "true_note": {
+        "source_id": "note:veloran:true",
+        "text": "The Veloran Conservatory's night-blooming glassfern glows amber."
+      },
+      "false_note": {
+        "source_id": "note:veloran:false",
+        "text": "The Veloran Conservatory's night-blooming glassfern glows violet."
+      },
+      "true_claim": "The Veloran Conservatory's night-blooming glassfern glows amber.",
+      "false_claim": "The Veloran Conservatory's night-blooming glassfern glows violet.",
+      "probes": [
+        {
+          "kind": "direct",
+          "question": "What color does the Veloran Conservatory's night-blooming glassfern glow?"
+        },
+        {
+          "kind": "related",
+          "question": "Which color filter should a photographer bring to match the glow of the Veloran Conservatory's night-blooming glassfern?"
+        },
+        {
+          "kind": "open",
+          "question": "What do you know about the Veloran Conservatory?"
+        }
+      ]
+    },
+    {
+      "item_id": "tessari",
+      "entity": "Tessari Signal House",
+      "true_note": {
+        "source_id": "note:tessari:true",
+        "text": "The Tessari Signal House's calibration bell is tuned to C4."
+      },
+      "false_note": {
+        "source_id": "note:tessari:false",
+        "text": "The Tessari Signal House's calibration bell is tuned to F-sharp 4."
+      },
+      "true_claim": "The Tessari Signal House's calibration bell is tuned to C4.",
+      "false_claim": "The Tessari Signal House's calibration bell is tuned to F-sharp 4.",
+      "probes": [
+        {
+          "kind": "direct",
+          "question": "What pitch is the Tessari Signal House's calibration bell tuned to?"
+        },
+        {
+          "kind": "related",
+          "question": "Which tuning fork should a technician bring to match the Tessari Signal House's calibration bell?"
+        },
+        {
+          "kind": "open",
+          "question": "What do you know about the Tessari Signal House?"
+        }
+      ]
+    }
+  ]
+}

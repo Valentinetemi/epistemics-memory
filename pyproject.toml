@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "epistemics-memory"
+version = "0.1.0"
+description = "A two-fact pilot for testing false-fact persistence in agent memory"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Valentinetemi" }]
+
+[project.scripts]
+epistemics-memory = "epistemics_memory.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

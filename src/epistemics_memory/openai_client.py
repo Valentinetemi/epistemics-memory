@@ -16,12 +16,13 @@ import time
 import urllib.error
 import urllib.request
 from collections import deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from typing import Any, Callable, Iterable, Mapping
 
 from epistemics_memory import MODEL
+from epistemics_memory.model_client import MockCall, MockResponse, ResponseResult
 
 
 RESPONSES_ENDPOINT = "https://api.openai.com/v1/responses"
@@ -81,46 +82,6 @@ class APIError(ResponsesClientError):
 
 class ResponseFormatError(ResponsesClientError):
     """The service or mock returned a malformed success response."""
-
-
-@dataclass(frozen=True)
-class ResponseResult:
-    """The response fields needed by the later experiment runner."""
-
-    response_id: str
-    model: str
-    status: str
-    output_text: str
-    raw: dict[str, Any]
-
-
-@dataclass(frozen=True)
-class MockResponse:
-    """One queued offline transport outcome.
-
-    ``status_code=None`` simulates a connection failure. No mock outcome can
-    carry request headers, so authorization values cannot enter mock traces.
-    """
-
-    status_code: int | None
-    body: Mapping[str, Any] = field(default_factory=dict)
-    headers: Mapping[str, str] = field(default_factory=dict)
-
-    def __post_init__(self) -> None:
-        if self.status_code is not None and not 100 <= self.status_code <= 599:
-            raise ValueError("mock status_code must be between 100 and 599")
-
-    @classmethod
-    def connection_failure(cls) -> MockResponse:
-        return cls(status_code=None)
-
-
-@dataclass(frozen=True)
-class MockCall:
-    """A safe mock request record containing no HTTP headers or API key."""
-
-    payload: dict[str, Any]
-    timeout_seconds: float
 
 
 @dataclass(frozen=True)
@@ -206,8 +167,14 @@ class ResponsesClient:
         input_text: str,
         text_format: Mapping[str, Any] | None = None,
         temperature: float | None = None,
+        seed: int | None = None,
     ) -> ResponseResult:
-        """Create one independent, non-streaming response."""
+        """Create one independent, non-streaming response.
+
+        The Responses API has no seed field. ``seed`` is accepted so the
+        provider-neutral runner can use one interface, but is intentionally
+        not transmitted.
+        """
 
         if not instructions.strip():
             raise ValueError("instructions must be non-empty")
@@ -219,6 +186,8 @@ class ResponsesClient:
             or not 0 <= temperature <= 2
         ):
             raise ValueError("temperature must be between 0 and 2")
+        if seed is not None and (isinstance(seed, bool) or not isinstance(seed, int)):
+            raise ValueError("seed must be an integer")
         payload: dict[str, Any] = {
             "model": self.model,
             "instructions": instructions,

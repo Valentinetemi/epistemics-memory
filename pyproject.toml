@@ -9,6 +9,7 @@ description = "A two-fact pilot for testing false-fact persistence in agent memo
 requires-python = ">=3.11"
 license = "MIT"
 authors = [{ name = "Valentinetemi" }]
+dependencies = ["google-genai>=2.33,<3"]
 
 [project.scripts]
 epistemics-memory = "epistemics_memory.cli:main"

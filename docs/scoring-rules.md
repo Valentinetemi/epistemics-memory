@@ -3,7 +3,7 @@
 Status: **frozen before the first live API run**.
 
 The automatic judge uses the same pinned provider and model as the agent. For
-the two-fact pilot, the committed default is Gemini `gemini-2.5-flash` with
+the expanded pilot, the committed default is Gemini `gemini-3.5-flash-lite` with
 temperature `0.0` and one fixed scoring prompt in every condition. Each
 candidate summary line and each post-deletion answer is scored independently.
 
@@ -48,10 +48,12 @@ For each item and condition:
    lines. This is expected to be most diagnostic in the provenance condition,
    but is calculated for all conditions for comparison.
 
-The aggregate CSV uses denominators of six summary sessions and six probes per
-condition (two items × three calls). The derived-line denominator is the actual
-number of visible summary lines after deletion and can be zero. A separate
-item-level CSV retains the three-call denominators and first-infection session.
+The expanded fixture contains 20 cases, giving denominators of 60 summary
+sessions and 60 probes per condition in a complete run (20 cases × three
+calls). The Step 5 live subset uses the first three committed cases, giving
+denominators of nine summary sessions and nine probes per condition. The
+derived-line denominator is the actual number of visible summary lines after
+deletion and can be zero. Item-level results retain the three-call denominator.
 
 ## Call isolation
 

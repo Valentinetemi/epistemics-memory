@@ -1,8 +1,8 @@
 """Offline-first runner for the synthetic two-fact memory pilot.
 
-The Responses API does not expose a seed parameter. The fixed seed controls
-runner ordering and deterministic mock generation and is recorded in every
-result. Live calls use the configured snapshot and temperature.
+Gemini receives the fixed seed, model, and temperature on every live call.
+The OpenAI fallback records the seed but does not transmit it because the
+Responses API has no seed parameter.
 """
 
 from __future__ import annotations
@@ -15,8 +15,10 @@ from pathlib import Path
 from typing import Any
 
 from epistemics_memory.fixtures import PilotFixture, PilotItem, load_fixture
+from epistemics_memory.gemini_client import GeminiClient
 from epistemics_memory.memory import MemoryCondition, MemoryStore, SummaryLine
-from epistemics_memory.openai_client import MockResponse, ResponseResult, ResponsesClient
+from epistemics_memory.model_client import ModelClient, MockResponse, ResponseResult
+from epistemics_memory.openai_client import ResponsesClient
 from epistemics_memory.prompts import AGENT_SYSTEM_PROMPT, SUMMARY_TASK, probe_task
 from epistemics_memory.scoring import (
     SCORE_SCHEMA,
@@ -85,6 +87,7 @@ CSV_FIELDS = (
     "probe_kind",
     "belief_persisted",
     "score_label",
+    "provider",
     "model_name",
     "seed",
     "temperature",
@@ -100,6 +103,7 @@ class RunnerError(RuntimeError):
 @dataclass(frozen=True)
 class RunnerConfig:
     config_label: str
+    provider: str
     model_name: str
     seed: int
     temperature: float
@@ -119,12 +123,15 @@ def load_runner_config(path: Path) -> RunnerConfig:
 
     data = json.loads(path.read_text(encoding="utf-8"))
     label = data.get("config_label")
+    provider = data.get("provider")
     model_name = data.get("model_name")
     seed = data.get("seed")
     temperature = data.get("temperature")
     summary_sessions = data.get("summary_sessions")
     if not isinstance(label, str) or "SYNTHETIC" not in label:
         raise RunnerError("config_label must identify a SYNTHETIC experiment")
+    if provider not in {"gemini", "openai"}:
+        raise RunnerError("provider must be 'gemini' or 'openai'")
     if not isinstance(model_name, str) or not model_name.strip():
         raise RunnerError("model_name must be a non-empty string")
     if isinstance(seed, bool) or not isinstance(seed, int):
@@ -139,6 +146,7 @@ def load_runner_config(path: Path) -> RunnerConfig:
         raise RunnerError("the two-fact pilot requires exactly three summary sessions")
     return RunnerConfig(
         config_label=label,
+        provider=provider,
         model_name=model_name,
         seed=seed,
         temperature=float(temperature),
@@ -148,7 +156,7 @@ def load_runner_config(path: Path) -> RunnerConfig:
 
 def build_default_mock_client(
     fixture: PilotFixture, config: RunnerConfig
-) -> ResponsesClient:
+) -> GeminiClient | ResponsesClient:
     """Build a deterministic queue that exercises all three memory outcomes."""
 
     rng = random.Random(config.seed)
@@ -156,23 +164,27 @@ def build_default_mock_client(
 
     def add_response(text: str) -> None:
         response_id = f"resp_SYNTHETIC_{rng.getrandbits(64):016x}"
-        responses.append(
-            MockResponse(
-                200,
-                {
-                    "id": response_id,
-                    "model": config.model_name,
-                    "status": "completed",
-                    "output": [
-                        {
-                            "type": "message",
-                            "role": "assistant",
-                            "content": [{"type": "output_text", "text": text}],
-                        }
-                    ],
-                },
-            )
-        )
+        if config.provider == "gemini":
+            body: dict[str, Any] = {
+                "id": response_id,
+                "model": config.model_name,
+                "status": "completed",
+                "text": text,
+            }
+        else:
+            body = {
+                "id": response_id,
+                "model": config.model_name,
+                "status": "completed",
+                "output": [
+                    {
+                        "type": "message",
+                        "role": "assistant",
+                        "content": [{"type": "output_text", "text": text}],
+                    }
+                ],
+            }
+        responses.append(MockResponse(200, body))
 
     for condition in MemoryCondition:
         for item in fixture.items:
@@ -215,18 +227,23 @@ def build_default_mock_client(
                 }
                 add_response(json.dumps(score, ensure_ascii=False))
 
-    return ResponsesClient(
-        model=config.model_name,
-        mock=True,
-        mock_responses=responses,
-    )
+    client_type = GeminiClient if config.provider == "gemini" else ResponsesClient
+    return client_type(model=config.model_name, mock=True, mock_responses=responses)
+
+
+def build_live_client(config: RunnerConfig) -> GeminiClient | ResponsesClient:
+    """Build the configured live client without making an API request."""
+
+    if config.provider == "gemini":
+        return GeminiClient(model=config.model_name)
+    return ResponsesClient(model=config.model_name)
 
 
 def run_pilot(
     *,
     fixture: PilotFixture,
     config: RunnerConfig,
-    client: ResponsesClient,
+    client: ModelClient,
     output_dir: Path,
     run_mode: str,
 ) -> RunArtifacts:
@@ -262,6 +279,7 @@ def run_pilot(
                     input_text=summary_input,
                     text_format=SUMMARY_FORMAT,
                     temperature=config.temperature,
+                    seed=config.seed,
                 )
                 memory.save_summary(
                     session_number=session_number,
@@ -279,6 +297,7 @@ def run_pilot(
                     instructions=agent_instructions,
                     input_text=question_input,
                     temperature=config.temperature,
+                    seed=config.seed,
                 )
                 score_response = client.create_response(
                     instructions=scorer_instructions,
@@ -289,6 +308,7 @@ def run_pilot(
                     ),
                     text_format=SCORE_FORMAT,
                     temperature=config.temperature,
+                    seed=config.seed,
                 )
                 score = _parse_score_response(score_response)
                 persisted = score.false_endorsed
@@ -306,6 +326,7 @@ def run_pilot(
                         "probe_kind": probe.kind,
                         "belief_persisted": str(persisted).lower(),
                         "score_label": score.label,
+                        "provider": config.provider,
                         "model_name": config.model_name,
                         "seed": config.seed,
                         "temperature": config.temperature,
@@ -438,6 +459,7 @@ def _question_trace(
         "item_id": item.item_id,
         "entity": item.entity,
         "probe_kind": probe_kind,
+        "provider": config.provider,
         "model_name": config.model_name,
         "seed": config.seed,
         "temperature": config.temperature,

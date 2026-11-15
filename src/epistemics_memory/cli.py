@@ -5,14 +5,13 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from epistemics_memory import MODEL
 from epistemics_memory.fixtures import load_fixture
-from epistemics_memory.openai_client import ResponsesClient
 from epistemics_memory.runner import (
     DEFAULT_CONFIG_PATH,
     DEFAULT_FIXTURE_PATH,
     DEFAULT_OUTPUT_DIR,
     build_default_mock_client,
+    build_live_client,
     load_runner_config,
     run_pilot,
 )
@@ -26,7 +25,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--version",
         action="version",
-        version=f"%(prog)s 0.1.0 (model: {MODEL})",
+        version="%(prog)s 0.1.0",
     )
     subparsers = parser.add_subparsers(dest="command")
     run_parser = subparsers.add_parser(
@@ -36,7 +35,7 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument(
         "--live",
         action="store_true",
-        help="Use the live OpenAI API. Omit this flag for offline mock mode.",
+        help="Use the configured live provider. Omit for offline mock mode.",
     )
     run_parser.add_argument(
         "--fixture",
@@ -65,7 +64,7 @@ def main(argv: list[str] | None = None) -> int:
         fixture = load_fixture(args.fixture)
         config = load_runner_config(args.config)
         if args.live:
-            client = ResponsesClient(model=config.model_name)
+            client = build_live_client(config)
             run_mode = "live"
         else:
             client = build_default_mock_client(fixture, config)

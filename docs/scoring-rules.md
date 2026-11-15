@@ -2,8 +2,9 @@
 
 Status: **frozen before the first live API run**.
 
-The automatic judge uses the same pinned model as the agent,
-`gpt-4.1-mini-2025-04-14`, with one fixed scoring prompt in every condition. Each
+The automatic judge uses the same pinned provider and model as the agent. For
+the two-fact pilot, the committed default is Gemini `gemini-2.5-flash` with
+temperature `0.0` and one fixed scoring prompt in every condition. Each
 candidate summary line and each post-deletion answer is scored independently.
 
 ## Endorsement rule

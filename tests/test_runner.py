@@ -41,7 +41,8 @@ class SyntheticRunnerTests(unittest.TestCase):
 
     def test_config_fixes_model_seed_temperature_and_sessions(self) -> None:
         self.assertIn("SYNTHETIC", self.config.config_label)
-        self.assertEqual("gpt-4.1-mini-2025-04-14", self.config.model_name)
+        self.assertEqual("gemini", self.config.provider)
+        self.assertEqual("gemini-2.5-flash", self.config.model_name)
         self.assertEqual(1729, self.config.seed)
         self.assertEqual(0.0, self.config.temperature)
         self.assertEqual(3, self.config.summary_sessions)
@@ -63,6 +64,8 @@ class SyntheticRunnerTests(unittest.TestCase):
         self.assertEqual(18, len(rows))
         self.assertEqual(18, len(traces))
         self.assertEqual(54, len(client.mock_calls))
+        self.assertEqual({"gemini"}, {row["provider"] for row in rows})
+        self.assertTrue(all(trace["provider"] == "gemini" for trace in traces))
         self.assertEqual(
             {"raw_notes", "notes_summaries", "provenance"},
             {row["condition"] for row in rows},
@@ -118,6 +121,7 @@ class SyntheticRunnerTests(unittest.TestCase):
             self.assertIn("SYNTHETIC", call.payload["input"])
             self.assertEqual(self.config.model_name, call.payload["model"])
             self.assertEqual(self.config.temperature, call.payload["temperature"])
+            self.assertEqual(self.config.seed, call.payload["seed"])
 
     def test_traces_contain_post_deletion_memory_and_no_deleted_note(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -197,8 +201,8 @@ class SyntheticRunnerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory, patch.dict(
             os.environ, {}, clear=True
         ), patch(
-            "epistemics_memory.openai_client.urllib.request.urlopen",
-            side_effect=AssertionError("default CLI must not call the network"),
+            "epistemics_memory.gemini_client.GeminiClient._get_sdk",
+            side_effect=AssertionError("default CLI must not construct the SDK"),
         ):
             exit_code = main(["run", "--output-dir", directory])
 

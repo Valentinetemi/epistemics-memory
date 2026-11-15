@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "epistemics-memory"
 version = "0.1.0"
-description = "A two-fact pilot for testing false-fact persistence in agent memory"
+description = "A synthetic deleted-source pilot for false-fact persistence in agent memory"
 requires-python = ">=3.11"
 license = "MIT"
 authors = [{ name = "Valentinetemi" }]

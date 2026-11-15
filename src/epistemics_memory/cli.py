@@ -20,7 +20,7 @@ from epistemics_memory.runner import (
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="epistemics-memory",
-        description="Run the two-fact external-memory contamination pilot.",
+        description="Run the synthetic deleted-source memory contamination pilot.",
     )
     parser.add_argument(
         "--version",
@@ -36,6 +36,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--live",
         action="store_true",
         help="Use the configured live provider. Omit for offline mock mode.",
+    )
+    run_parser.add_argument(
+        "--case-limit",
+        type=int,
+        default=None,
+        help="Run only the first N synthetic cases in every memory design.",
     )
     run_parser.add_argument(
         "--fixture",
@@ -67,7 +73,11 @@ def main(argv: list[str] | None = None) -> int:
             client = build_live_client(config)
             run_mode = "live"
         else:
-            client = build_default_mock_client(fixture, config)
+            client = build_default_mock_client(
+                fixture,
+                config,
+                case_limit=args.case_limit,
+            )
             run_mode = "mock"
         run_pilot(
             fixture=fixture,
@@ -75,5 +85,10 @@ def main(argv: list[str] | None = None) -> int:
             client=client,
             output_dir=args.output_dir,
             run_mode=run_mode,
+            case_limit=args.case_limit,
         )
     return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

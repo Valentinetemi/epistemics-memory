@@ -21,7 +21,7 @@ from typing import Any, Callable, Iterable, Mapping
 from epistemics_memory.model_client import MockCall, MockResponse, ResponseResult
 
 
-DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
+DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite"
 RETRYABLE_STATUS_CODES = frozenset({408, 409, 429, *range(500, 600)})
 NON_RETRYABLE_RATE_LIMIT_CODES = frozenset(
     {
@@ -84,10 +84,12 @@ class GeminiClient:
         max_retries: int = 2,
         backoff_base_seconds: float = 0.5,
         max_retry_delay_seconds: float = 60.0,
+        minimum_request_interval_seconds: float = 0.0,
         mock: bool = False,
         mock_responses: Iterable[MockResponse] = (),
         sleep: Callable[[float], None] = time.sleep,
         random_value: Callable[[], float] = random.random,
+        monotonic: Callable[[], float] = time.monotonic,
     ) -> None:
         if not model.strip():
             raise GeminiConfigurationError("model must be non-empty")
@@ -109,15 +111,24 @@ class GeminiClient:
             raise GeminiConfigurationError(
                 "max_retry_delay_seconds must be positive"
             )
+        if minimum_request_interval_seconds < 0:
+            raise GeminiConfigurationError(
+                "minimum_request_interval_seconds cannot be negative"
+            )
 
         self.model = model
         self.timeout_seconds = float(timeout_seconds)
         self.max_retries = max_retries
         self.backoff_base_seconds = float(backoff_base_seconds)
         self.max_retry_delay_seconds = float(max_retry_delay_seconds)
+        self.minimum_request_interval_seconds = float(
+            minimum_request_interval_seconds
+        )
         self.mock = mock
         self._sleep = sleep
         self._random_value = random_value
+        self._monotonic = monotonic
+        self._last_request_started: float | None = None
         self._mock_responses = deque(mock_responses)
         self._mock_calls: list[MockCall] = []
         self._sdk_client: Any | None = None
@@ -244,6 +255,7 @@ class GeminiClient:
                 "response_json_schema"
             ]
         config = types.GenerateContentConfig(**config_values)
+        self._wait_for_request_slot()
         try:
             response = client.models.generate_content(
                 model=self.model,
@@ -292,6 +304,22 @@ class GeminiClient:
             output_text=output_text,
             raw=raw,
         )
+
+    def _wait_for_request_slot(self) -> None:
+        """Space live requests without exposing request content or credentials."""
+
+        now = self._monotonic()
+        if self._last_request_started is None:
+            self._last_request_started = now
+            return
+        wait_seconds = max(
+            0.0,
+            self.minimum_request_interval_seconds
+            - (now - self._last_request_started),
+        )
+        if wait_seconds:
+            self._sleep(wait_seconds)
+        self._last_request_started = now + wait_seconds
 
     def _get_sdk(self) -> tuple[Any, Any, Any]:
         if self._sdk_client is not None:

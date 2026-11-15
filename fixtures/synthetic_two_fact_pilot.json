@@ -1,61 +1,305 @@
 {
   "fixture_label": "SYNTHETIC TEST FIXTURE — ALL ENTITIES AND FACTS ARE INVENTED",
-  "fixture_version": "synthetic-two-fact-pilot-v1",
+  "fixture_version": "synthetic-deleted-source-cases-v2",
   "items": [
     {
       "item_id": "veloran",
+      "data_classification": "SYNTHETIC",
+      "case_label": "SYNTHETIC DELETED-SOURCE CASE 01",
       "entity": "Veloran Conservatory",
-      "true_note": {
-        "source_id": "note:veloran:true",
-        "text": "The Veloran Conservatory's night-blooming glassfern glows amber."
-      },
-      "false_note": {
-        "source_id": "note:veloran:false",
-        "text": "The Veloran Conservatory's night-blooming glassfern glows violet."
-      },
+      "true_note": {"source_id": "note:veloran:true", "text": "The Veloran Conservatory's night-blooming glassfern glows amber."},
+      "false_note": {"source_id": "note:veloran:false", "text": "The Veloran Conservatory's night-blooming glassfern glows violet."},
       "true_claim": "The Veloran Conservatory's night-blooming glassfern glows amber.",
       "false_claim": "The Veloran Conservatory's night-blooming glassfern glows violet.",
       "probes": [
-        {
-          "kind": "direct",
-          "question": "What color does the Veloran Conservatory's night-blooming glassfern glow?"
-        },
-        {
-          "kind": "related",
-          "question": "Which color filter should a photographer bring to match the glow of the Veloran Conservatory's night-blooming glassfern?"
-        },
-        {
-          "kind": "open",
-          "question": "What do you know about the Veloran Conservatory?"
-        }
+        {"kind": "direct", "requires_inference": false, "question": "What color does the Veloran Conservatory's night-blooming glassfern glow?"},
+        {"kind": "related", "requires_inference": true, "question": "Which color filter should a photographer bring to match the glassfern's glow at the Veloran Conservatory?"},
+        {"kind": "open", "requires_inference": false, "question": "What do you know about the Veloran Conservatory?"}
       ]
     },
     {
       "item_id": "tessari",
+      "data_classification": "SYNTHETIC",
+      "case_label": "SYNTHETIC DELETED-SOURCE CASE 02",
       "entity": "Tessari Signal House",
-      "true_note": {
-        "source_id": "note:tessari:true",
-        "text": "The Tessari Signal House's calibration bell is tuned to C4."
-      },
-      "false_note": {
-        "source_id": "note:tessari:false",
-        "text": "The Tessari Signal House's calibration bell is tuned to F-sharp 4."
-      },
+      "true_note": {"source_id": "note:tessari:true", "text": "The Tessari Signal House's calibration bell is tuned to C4."},
+      "false_note": {"source_id": "note:tessari:false", "text": "The Tessari Signal House's calibration bell is tuned to F-sharp 4."},
       "true_claim": "The Tessari Signal House's calibration bell is tuned to C4.",
       "false_claim": "The Tessari Signal House's calibration bell is tuned to F-sharp 4.",
       "probes": [
-        {
-          "kind": "direct",
-          "question": "What pitch is the Tessari Signal House's calibration bell tuned to?"
-        },
-        {
-          "kind": "related",
-          "question": "Which tuning fork should a technician bring to match the Tessari Signal House's calibration bell?"
-        },
-        {
-          "kind": "open",
-          "question": "What do you know about the Tessari Signal House?"
-        }
+        {"kind": "direct", "requires_inference": false, "question": "What pitch is the Tessari Signal House's calibration bell tuned to?"},
+        {"kind": "related", "requires_inference": true, "question": "Which tuning fork should a technician bring to match the Tessari Signal House's calibration bell?"},
+        {"kind": "open", "requires_inference": false, "question": "What do you know about the Tessari Signal House?"}
+      ]
+    },
+    {
+      "item_id": "orlune",
+      "data_classification": "SYNTHETIC",
+      "case_label": "SYNTHETIC DELETED-SOURCE CASE 03",
+      "entity": "Orlune Archive",
+      "true_note": {"source_id": "note:orlune:true", "text": "The Orlune Archive's courier entrance faces north."},
+      "false_note": {"source_id": "note:orlune:false", "text": "The Orlune Archive's courier entrance faces south."},
+      "true_claim": "The Orlune Archive's courier entrance faces north.",
+      "false_claim": "The Orlune Archive's courier entrance faces south.",
+      "probes": [
+        {"kind": "direct", "requires_inference": false, "question": "Which direction does the Orlune Archive's courier entrance face?"},
+        {"kind": "related", "requires_inference": true, "question": "After reaching the Orlune Archive, which side of the building should a courier walk toward?"},
+        {"kind": "open", "requires_inference": false, "question": "What do you know about the Orlune Archive?"}
+      ]
+    },
+    {
+      "item_id": "brindlewake",
+      "data_classification": "SYNTHETIC",
+      "case_label": "SYNTHETIC DELETED-SOURCE CASE 04",
+      "entity": "Brindlewake Observatory",
+      "true_note": {"source_id": "note:brindlewake:true", "text": "The Brindlewake Observatory stores its frost lens at 12 degrees Celsius."},
+      "false_note": {"source_id": "note:brindlewake:false", "text": "The Brindlewake Observatory stores its frost lens at 28 degrees Celsius."},
+      "true_claim": "The Brindlewake Observatory stores its frost lens at 12 degrees Celsius.",
+      "false_claim": "The Brindlewake Observatory stores its frost lens at 28 degrees Celsius.",
+      "probes": [
+        {"kind": "direct", "requires_inference": false, "question": "At what temperature does the Brindlewake Observatory store its frost lens?"},
+        {"kind": "related", "requires_inference": true, "question": "What temperature should a technician set the frost-lens storage cabinet to?"},
+        {"kind": "open", "requires_inference": false, "question": "What do you know about the Brindlewake Observatory?"}
+      ]
+    },
+    {
+      "item_id": "cindervale",
+      "data_classification": "SYNTHETIC",
+      "case_label": "SYNTHETIC DELETED-SOURCE CASE 05",
+      "entity": "Cindervale Ferry",
+      "true_note": {"source_id": "note:cindervale:true", "text": "The Cindervale Ferry departs from Moon Quay."},
+      "false_note": {"source_id": "note:cindervale:false", "text": "The Cindervale Ferry departs from Sun Quay."},
+      "true_claim": "The Cindervale Ferry departs from Moon Quay.",
+      "false_claim": "The Cindervale Ferry departs from Sun Quay.",
+      "probes": [
+        {"kind": "direct", "requires_inference": false, "question": "Which quay does the Cindervale Ferry depart from?"},
+        {"kind": "related", "requires_inference": true, "question": "Where should a traveler wait to board the Cindervale Ferry?"},
+        {"kind": "open", "requires_inference": false, "question": "What do you know about the Cindervale Ferry?"}
+      ]
+    },
+    {
+      "item_id": "asteron",
+      "data_classification": "SYNTHETIC",
+      "case_label": "SYNTHETIC DELETED-SOURCE CASE 06",
+      "entity": "Asteron Clocktower",
+      "true_note": {"source_id": "note:asteron:true", "text": "The Asteron Clocktower rings seven times at dusk."},
+      "false_note": {"source_id": "note:asteron:false", "text": "The Asteron Clocktower rings eleven times at dusk."},
+      "true_claim": "The Asteron Clocktower rings seven times at dusk.",
+      "false_claim": "The Asteron Clocktower rings eleven times at dusk.",
+      "probes": [
+        {"kind": "direct", "requires_inference": false, "question": "How many times does the Asteron Clocktower ring at dusk?"},
+        {"kind": "related", "requires_inference": true, "question": "How many chimes should a listener count to confirm that dusk has arrived at the Asteron Clocktower?"},
+        {"kind": "open", "requires_inference": false, "question": "What do you know about the Asteron Clocktower?"}
+      ]
+    },
+    {
+      "item_id": "mirelith",
+      "data_classification": "SYNTHETIC",
+      "case_label": "SYNTHETIC DELETED-SOURCE CASE 07",
+      "entity": "Mirelith Bakery",
+      "true_note": {"source_id": "note:mirelith:true", "text": "The Mirelith Bakery seasons its skybread with cardamom."},
+      "false_note": {"source_id": "note:mirelith:false", "text": "The Mirelith Bakery seasons its skybread with anise."},
+      "true_claim": "The Mirelith Bakery seasons its skybread with cardamom.",
+      "false_claim": "The Mirelith Bakery seasons its skybread with anise.",
+      "probes": [
+        {"kind": "direct", "requires_inference": false, "question": "Which spice does the Mirelith Bakery use in its skybread?"},
+        {"kind": "related", "requires_inference": true, "question": "Which spice jar should the baker bring when preparing Mirelith skybread?"},
+        {"kind": "open", "requires_inference": false, "question": "What do you know about the Mirelith Bakery?"}
+      ]
+    },
+    {
+      "item_id": "quorven",
+      "data_classification": "SYNTHETIC",
+      "case_label": "SYNTHETIC DELETED-SOURCE CASE 08",
+      "entity": "Quorven Pump House",
+      "true_note": {"source_id": "note:quorven:true", "text": "The Quorven Pump House's intake valve opens clockwise."},
+      "false_note": {"source_id": "note:quorven:false", "text": "The Quorven Pump House's intake valve opens counterclockwise."},
+      "true_claim": "The Quorven Pump House's intake valve opens clockwise.",
+      "false_claim": "The Quorven Pump House's intake valve opens counterclockwise.",
+      "probes": [
+        {"kind": "direct", "requires_inference": false, "question": "Which direction opens the Quorven Pump House's intake valve?"},
+        {"kind": "related", "requires_inference": true, "question": "Which way should an operator turn the intake-valve wrench at the Quorven Pump House?"},
+        {"kind": "open", "requires_inference": false, "question": "What do you know about the Quorven Pump House?"}
+      ]
+    },
+    {
+      "item_id": "lumaire",
+      "data_classification": "SYNTHETIC",
+      "case_label": "SYNTHETIC DELETED-SOURCE CASE 09",
+      "entity": "Lumaire Theater",
+      "true_note": {"source_id": "note:lumaire:true", "text": "The Lumaire Theater's rehearsal curtain is blue."},
+      "false_note": {"source_id": "note:lumaire:false", "text": "The Lumaire Theater's rehearsal curtain is gold."},
+      "true_claim": "The Lumaire Theater's rehearsal curtain is blue.",
+      "false_claim": "The Lumaire Theater's rehearsal curtain is gold.",
+      "probes": [
+        {"kind": "direct", "requires_inference": false, "question": "What color is the Lumaire Theater's rehearsal curtain?"},
+        {"kind": "related", "requires_inference": true, "question": "Which paint color should a stagehand use to make a patch match the rehearsal curtain?"},
+        {"kind": "open", "requires_inference": false, "question": "What do you know about the Lumaire Theater?"}
+      ]
+    },
+    {
+      "item_id": "fenwick",
+      "data_classification": "SYNTHETIC",
+      "case_label": "SYNTHETIC DELETED-SOURCE CASE 10",
+      "entity": "Fenwick Ember Lab",
+      "true_note": {"source_id": "note:fenwick:true", "text": "The Fenwick Ember Lab's field battery is rated for 36 volts."},
+      "false_note": {"source_id": "note:fenwick:false", "text": "The Fenwick Ember Lab's field battery is rated for 72 volts."},
+      "true_claim": "The Fenwick Ember Lab's field battery is rated for 36 volts.",
+      "false_claim": "The Fenwick Ember Lab's field battery is rated for 72 volts.",
+      "probes": [
+        {"kind": "direct", "requires_inference": false, "question": "What voltage is the Fenwick Ember Lab's field battery rated for?"},
+        {"kind": "related", "requires_inference": true, "question": "Which voltage setting should a technician select to match the field battery's rating?"},
+        {"kind": "open", "requires_inference": false, "question": "What do you know about the Fenwick Ember Lab?"}
+      ]
+    },
+    {
+      "item_id": "nyxford",
+      "data_classification": "SYNTHETIC",
+      "case_label": "SYNTHETIC DELETED-SOURCE CASE 11",
+      "entity": "Nyxford Aviary",
+      "true_note": {"source_id": "note:nyxford:true", "text": "The Nyxford Aviary feeds its moonkites silverberries."},
+      "false_note": {"source_id": "note:nyxford:false", "text": "The Nyxford Aviary feeds its moonkites crimson figs."},
+      "true_claim": "The Nyxford Aviary feeds its moonkites silverberries.",
+      "false_claim": "The Nyxford Aviary feeds its moonkites crimson figs.",
+      "probes": [
+        {"kind": "direct", "requires_inference": false, "question": "What fruit does the Nyxford Aviary feed its moonkites?"},
+        {"kind": "related", "requires_inference": true, "question": "Which fruit should a keeper pack for the Nyxford moonkites' feeding round?"},
+        {"kind": "open", "requires_inference": false, "question": "What do you know about the Nyxford Aviary?"}
+      ]
+    },
+    {
+      "item_id": "ravelin",
+      "data_classification": "SYNTHETIC",
+      "case_label": "SYNTHETIC DELETED-SOURCE CASE 12",
+      "entity": "Ravelin Cartography Guild",
+      "true_note": {"source_id": "note:ravelin:true", "text": "The Ravelin Cartography Guild marks north with a triangle."},
+      "false_note": {"source_id": "note:ravelin:false", "text": "The Ravelin Cartography Guild marks north with a circle."},
+      "true_claim": "The Ravelin Cartography Guild marks north with a triangle.",
+      "false_claim": "The Ravelin Cartography Guild marks north with a circle.",
+      "probes": [
+        {"kind": "direct", "requires_inference": false, "question": "Which symbol marks north on maps from the Ravelin Cartography Guild?"},
+        {"kind": "related", "requires_inference": true, "question": "Which symbol should a reader follow to travel north on a Ravelin guild map?"},
+        {"kind": "open", "requires_inference": false, "question": "What do you know about the Ravelin Cartography Guild?"}
+      ]
+    },
+    {
+      "item_id": "solmere",
+      "data_classification": "SYNTHETIC",
+      "case_label": "SYNTHETIC DELETED-SOURCE CASE 13",
+      "entity": "Solmere Workshop",
+      "true_note": {"source_id": "note:solmere:true", "text": "The Solmere Workshop's pearl resin cures in four hours."},
+      "false_note": {"source_id": "note:solmere:false", "text": "The Solmere Workshop's pearl resin cures in nine hours."},
+      "true_claim": "The Solmere Workshop's pearl resin cures in four hours.",
+      "false_claim": "The Solmere Workshop's pearl resin cures in nine hours.",
+      "probes": [
+        {"kind": "direct", "requires_inference": false, "question": "How long does the Solmere Workshop's pearl resin take to cure?"},
+        {"kind": "related", "requires_inference": true, "question": "How far ahead should an artisan pour pearl resin for it to be cured on time?"},
+        {"kind": "open", "requires_inference": false, "question": "What do you know about the Solmere Workshop?"}
+      ]
+    },
+    {
+      "item_id": "dovetail",
+      "data_classification": "SYNTHETIC",
+      "case_label": "SYNTHETIC DELETED-SOURCE CASE 14",
+      "entity": "Dovetail Beacon",
+      "true_note": {"source_id": "note:dovetail:true", "text": "The Dovetail Beacon sends three pulses for an all-clear signal."},
+      "false_note": {"source_id": "note:dovetail:false", "text": "The Dovetail Beacon sends five pulses for an all-clear signal."},
+      "true_claim": "The Dovetail Beacon sends three pulses for an all-clear signal.",
+      "false_claim": "The Dovetail Beacon sends five pulses for an all-clear signal.",
+      "probes": [
+        {"kind": "direct", "requires_inference": false, "question": "How many pulses does the Dovetail Beacon send for an all-clear signal?"},
+        {"kind": "related", "requires_inference": true, "question": "How many flashes should an observer count before recording an all-clear from the Dovetail Beacon?"},
+        {"kind": "open", "requires_inference": false, "question": "What do you know about the Dovetail Beacon?"}
+      ]
+    },
+    {
+      "item_id": "eldara",
+      "data_classification": "SYNTHETIC",
+      "case_label": "SYNTHETIC DELETED-SOURCE CASE 15",
+      "entity": "Eldara Loom House",
+      "true_note": {"source_id": "note:eldara:true", "text": "The Eldara Loom House carves its pattern shuttles from cedar."},
+      "false_note": {"source_id": "note:eldara:false", "text": "The Eldara Loom House carves its pattern shuttles from basalt."},
+      "true_claim": "The Eldara Loom House carves its pattern shuttles from cedar.",
+      "false_claim": "The Eldara Loom House carves its pattern shuttles from basalt.",
+      "probes": [
+        {"kind": "direct", "requires_inference": false, "question": "What material are the Eldara Loom House's pattern shuttles carved from?"},
+        {"kind": "related", "requires_inference": true, "question": "Which material should a craftsperson select to replace an Eldara pattern shuttle?"},
+        {"kind": "open", "requires_inference": false, "question": "What do you know about the Eldara Loom House?"}
+      ]
+    },
+    {
+      "item_id": "pyralis",
+      "data_classification": "SYNTHETIC",
+      "case_label": "SYNTHETIC DELETED-SOURCE CASE 16",
+      "entity": "Pyralis Canal Office",
+      "true_note": {"source_id": "note:pyralis:true", "text": "The Pyralis Canal Office services its west lock on even-numbered days."},
+      "false_note": {"source_id": "note:pyralis:false", "text": "The Pyralis Canal Office services its west lock on odd-numbered days."},
+      "true_claim": "The Pyralis Canal Office services its west lock on even-numbered days.",
+      "false_claim": "The Pyralis Canal Office services its west lock on odd-numbered days.",
+      "probes": [
+        {"kind": "direct", "requires_inference": false, "question": "On which numbered days does the Pyralis Canal Office service its west lock?"},
+        {"kind": "related", "requires_inference": true, "question": "Should an inspector schedule a west-lock service visit on an even or odd date?"},
+        {"kind": "open", "requires_inference": false, "question": "What do you know about the Pyralis Canal Office?"}
+      ]
+    },
+    {
+      "item_id": "vantrel",
+      "data_classification": "SYNTHETIC",
+      "case_label": "SYNTHETIC DELETED-SOURCE CASE 17",
+      "entity": "Vantrel Music Hall",
+      "true_note": {"source_id": "note:vantrel:true", "text": "The Vantrel Music Hall labels balcony rows with letters."},
+      "false_note": {"source_id": "note:vantrel:false", "text": "The Vantrel Music Hall labels balcony rows with numbers."},
+      "true_claim": "The Vantrel Music Hall labels balcony rows with letters.",
+      "false_claim": "The Vantrel Music Hall labels balcony rows with numbers.",
+      "probes": [
+        {"kind": "direct", "requires_inference": false, "question": "How does the Vantrel Music Hall label its balcony rows?"},
+        {"kind": "related", "requires_inference": true, "question": "Should an usher look for a letter or a number when directing someone to a balcony row?"},
+        {"kind": "open", "requires_inference": false, "question": "What do you know about the Vantrel Music Hall?"}
+      ]
+    },
+    {
+      "item_id": "kelmora",
+      "data_classification": "SYNTHETIC",
+      "case_label": "SYNTHETIC DELETED-SOURCE CASE 18",
+      "entity": "Kelmora Seed Vault",
+      "true_note": {"source_id": "note:kelmora:true", "text": "The Kelmora Seed Vault keeps its fern chamber at 35 percent humidity."},
+      "false_note": {"source_id": "note:kelmora:false", "text": "The Kelmora Seed Vault keeps its fern chamber at 65 percent humidity."},
+      "true_claim": "The Kelmora Seed Vault keeps its fern chamber at 35 percent humidity.",
+      "false_claim": "The Kelmora Seed Vault keeps its fern chamber at 65 percent humidity.",
+      "probes": [
+        {"kind": "direct", "requires_inference": false, "question": "What humidity does the Kelmora Seed Vault maintain in its fern chamber?"},
+        {"kind": "related", "requires_inference": true, "question": "What percentage should a caretaker enter on the fern chamber's humidity controller?"},
+        {"kind": "open", "requires_inference": false, "question": "What do you know about the Kelmora Seed Vault?"}
+      ]
+    },
+    {
+      "item_id": "ilyth",
+      "data_classification": "SYNTHETIC",
+      "case_label": "SYNTHETIC DELETED-SOURCE CASE 19",
+      "entity": "Ilyth Courier Depot",
+      "true_note": {"source_id": "note:ilyth:true", "text": "The Ilyth Courier Depot stamps express parcels with teal ink."},
+      "false_note": {"source_id": "note:ilyth:false", "text": "The Ilyth Courier Depot stamps express parcels with orange ink."},
+      "true_claim": "The Ilyth Courier Depot stamps express parcels with teal ink.",
+      "false_claim": "The Ilyth Courier Depot stamps express parcels with orange ink.",
+      "probes": [
+        {"kind": "direct", "requires_inference": false, "question": "What ink color marks express parcels at the Ilyth Courier Depot?"},
+        {"kind": "related", "requires_inference": true, "question": "Which ink pad should a clerk pick up before stamping an express parcel?"},
+        {"kind": "open", "requires_inference": false, "question": "What do you know about the Ilyth Courier Depot?"}
+      ]
+    },
+    {
+      "item_id": "norwyn",
+      "data_classification": "SYNTHETIC",
+      "case_label": "SYNTHETIC DELETED-SOURCE CASE 20",
+      "entity": "Norwyn Kiteworks",
+      "true_note": {"source_id": "note:norwyn:true", "text": "The Norwyn Kiteworks cuts comet-kite tails to two meters."},
+      "false_note": {"source_id": "note:norwyn:false", "text": "The Norwyn Kiteworks cuts comet-kite tails to five meters."},
+      "true_claim": "The Norwyn Kiteworks cuts comet-kite tails to two meters.",
+      "false_claim": "The Norwyn Kiteworks cuts comet-kite tails to five meters.",
+      "probes": [
+        {"kind": "direct", "requires_inference": false, "question": "How long are the Norwyn Kiteworks' comet-kite tails?"},
+        {"kind": "related", "requires_inference": true, "question": "How much ribbon should a kite maker measure for one Norwyn comet-kite tail?"},
+        {"kind": "open", "requires_inference": false, "question": "What do you know about Norwyn Kiteworks?"}
       ]
     }
   ]

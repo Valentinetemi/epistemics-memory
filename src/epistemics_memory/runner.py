@@ -1,4 +1,4 @@
-"""Offline-first runner for the synthetic two-fact memory pilot.
+"""Offline-first runner for the synthetic deleted-source memory pilot.
 
 Gemini receives the fixed seed, model, and temperature on every live call.
 The OpenAI fallback records the seed but does not transmit it because the
@@ -32,7 +32,7 @@ from epistemics_memory.scoring import (
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_FIXTURE_PATH = PROJECT_ROOT / "fixtures" / "synthetic_two_fact_pilot.json"
 DEFAULT_CONFIG_PATH = PROJECT_ROOT / "config" / "synthetic_two_fact_pilot.json"
-DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "runs" / "synthetic_two_fact_pilot"
+DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "runs" / "synthetic_deleted_source_pilot"
 
 SYNTHETIC_NOTICE = (
     "SYNTHETIC TEST FIXTURE: Every entity, note, claim, question, and output "
@@ -83,8 +83,10 @@ CSV_FIELDS = (
     "run_mode",
     "condition",
     "item_id",
+    "case_label",
     "entity",
     "probe_kind",
+    "probe_requires_inference",
     "belief_persisted",
     "score_label",
     "provider",
@@ -108,6 +110,10 @@ class RunnerConfig:
     seed: int
     temperature: float
     summary_sessions: int
+    live_request_interval_seconds: float
+    live_timeout_seconds: float
+    live_max_retries: int
+    live_retry_backoff_base_seconds: float
 
 
 @dataclass(frozen=True)
@@ -128,6 +134,12 @@ def load_runner_config(path: Path) -> RunnerConfig:
     seed = data.get("seed")
     temperature = data.get("temperature")
     summary_sessions = data.get("summary_sessions")
+    live_request_interval_seconds = data.get("live_request_interval_seconds")
+    live_timeout_seconds = data.get("live_timeout_seconds")
+    live_max_retries = data.get("live_max_retries")
+    live_retry_backoff_base_seconds = data.get(
+        "live_retry_backoff_base_seconds"
+    )
     if not isinstance(label, str) or "SYNTHETIC" not in label:
         raise RunnerError("config_label must identify a SYNTHETIC experiment")
     if provider not in {"gemini", "openai"}:
@@ -143,7 +155,31 @@ def load_runner_config(path: Path) -> RunnerConfig:
     ):
         raise RunnerError("temperature must be between 0 and 2")
     if summary_sessions != 3:
-        raise RunnerError("the two-fact pilot requires exactly three summary sessions")
+        raise RunnerError("the pilot requires exactly three summary sessions")
+    if (
+        isinstance(live_request_interval_seconds, bool)
+        or not isinstance(live_request_interval_seconds, (int, float))
+        or live_request_interval_seconds < 0
+    ):
+        raise RunnerError("live_request_interval_seconds cannot be negative")
+    if (
+        isinstance(live_timeout_seconds, bool)
+        or not isinstance(live_timeout_seconds, (int, float))
+        or live_timeout_seconds <= 0
+    ):
+        raise RunnerError("live_timeout_seconds must be positive")
+    if (
+        isinstance(live_max_retries, bool)
+        or not isinstance(live_max_retries, int)
+        or live_max_retries < 0
+    ):
+        raise RunnerError("live_max_retries must be a non-negative integer")
+    if (
+        isinstance(live_retry_backoff_base_seconds, bool)
+        or not isinstance(live_retry_backoff_base_seconds, (int, float))
+        or live_retry_backoff_base_seconds < 0
+    ):
+        raise RunnerError("live_retry_backoff_base_seconds cannot be negative")
     return RunnerConfig(
         config_label=label,
         provider=provider,
@@ -151,11 +187,20 @@ def load_runner_config(path: Path) -> RunnerConfig:
         seed=seed,
         temperature=float(temperature),
         summary_sessions=summary_sessions,
+        live_request_interval_seconds=float(live_request_interval_seconds),
+        live_timeout_seconds=float(live_timeout_seconds),
+        live_max_retries=live_max_retries,
+        live_retry_backoff_base_seconds=float(
+            live_retry_backoff_base_seconds
+        ),
     )
 
 
 def build_default_mock_client(
-    fixture: PilotFixture, config: RunnerConfig
+    fixture: PilotFixture,
+    config: RunnerConfig,
+    *,
+    case_limit: int | None = None,
 ) -> GeminiClient | ResponsesClient:
     """Build a deterministic queue that exercises all three memory outcomes."""
 
@@ -186,8 +231,9 @@ def build_default_mock_client(
             }
         responses.append(MockResponse(200, body))
 
+    selected_items = _select_items(fixture, case_limit)
     for condition in MemoryCondition:
-        for item in fixture.items:
+        for item in selected_items:
             previous_summary_id: str | None = None
             for session_number in range(1, config.summary_sessions + 1):
                 if condition is MemoryCondition.RAW_NOTES or previous_summary_id is None:
@@ -235,7 +281,15 @@ def build_live_client(config: RunnerConfig) -> GeminiClient | ResponsesClient:
     """Build the configured live client without making an API request."""
 
     if config.provider == "gemini":
-        return GeminiClient(model=config.model_name)
+        return GeminiClient(
+            model=config.model_name,
+            timeout_seconds=config.live_timeout_seconds,
+            max_retries=config.live_max_retries,
+            backoff_base_seconds=config.live_retry_backoff_base_seconds,
+            minimum_request_interval_seconds=(
+                config.live_request_interval_seconds
+            ),
+        )
     return ResponsesClient(model=config.model_name)
 
 
@@ -246,6 +300,7 @@ def run_pilot(
     client: ModelClient,
     output_dir: Path,
     run_mode: str,
+    case_limit: int | None = None,
 ) -> RunArtifacts:
     """Run all synthetic items and conditions and write local result artifacts."""
 
@@ -259,6 +314,7 @@ def run_pilot(
         raise RunnerError("live run_mode requires a live client")
     if client.model != config.model_name:
         raise RunnerError("client model does not match the runner config")
+    selected_items = _select_items(fixture, case_limit)
 
     rows: list[dict[str, Any]] = []
     traces: list[dict[str, Any]] = []
@@ -266,7 +322,7 @@ def run_pilot(
     scorer_instructions = f"{SYNTHETIC_NOTICE}\n\n{SCORER_SYSTEM_PROMPT}"
 
     for condition in MemoryCondition:
-        for item in fixture.items:
+        for item in selected_items:
             memory = _initialize_memory(condition, item)
             for session_number in range(1, config.summary_sessions + 1):
                 summary_input = _request_input(
@@ -322,8 +378,12 @@ def run_pilot(
                         "run_mode": run_mode,
                         "condition": condition.value,
                         "item_id": item.item_id,
+                        "case_label": item.case_label,
                         "entity": item.entity,
                         "probe_kind": probe.kind,
+                        "probe_requires_inference": str(
+                            probe.requires_inference
+                        ).lower(),
                         "belief_persisted": str(persisted).lower(),
                         "score_label": score.label,
                         "provider": config.provider,
@@ -342,6 +402,7 @@ def run_pilot(
                         condition=condition,
                         item=item,
                         probe_kind=probe.kind,
+                        probe_requires_inference=probe.requires_inference,
                         question=probe.question,
                         question_input=question_input,
                         memory=memory,
@@ -362,6 +423,20 @@ def run_pilot(
         question_count=len(rows),
         persistence_count=sum(row["belief_persisted"] == "true" for row in rows),
     )
+
+
+def _select_items(
+    fixture: PilotFixture, case_limit: int | None
+) -> tuple[PilotItem, ...]:
+    if case_limit is None:
+        return fixture.items
+    if isinstance(case_limit, bool) or not isinstance(case_limit, int):
+        raise RunnerError("case_limit must be a positive integer")
+    if not 1 <= case_limit <= len(fixture.items):
+        raise RunnerError(
+            f"case_limit must be between 1 and {len(fixture.items)}"
+        )
+    return fixture.items[:case_limit]
 
 
 def _initialize_memory(
@@ -440,6 +515,7 @@ def _question_trace(
     condition: MemoryCondition,
     item: PilotItem,
     probe_kind: str,
+    probe_requires_inference: bool,
     question: str,
     question_input: str,
     memory: MemoryStore,
@@ -457,8 +533,10 @@ def _question_trace(
         "run_mode": run_mode,
         "condition": condition.value,
         "item_id": item.item_id,
+        "case_label": item.case_label,
         "entity": item.entity,
         "probe_kind": probe_kind,
+        "probe_requires_inference": probe_requires_inference,
         "provider": config.provider,
         "model_name": config.model_name,
         "seed": config.seed,

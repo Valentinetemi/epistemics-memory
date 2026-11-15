@@ -17,6 +17,7 @@ from epistemics_memory.runner import (
     DEFAULT_CONFIG_PATH,
     DEFAULT_FIXTURE_PATH,
     build_default_mock_client,
+    build_live_client,
     load_runner_config,
     run_pilot,
 )
@@ -28,26 +29,48 @@ class SyntheticRunnerTests(unittest.TestCase):
         cls.fixture = load_fixture(DEFAULT_FIXTURE_PATH)
         cls.config = load_runner_config(DEFAULT_CONFIG_PATH)
 
-    def run_mock(self, output_dir: Path):
-        client = build_default_mock_client(self.fixture, self.config)
+    def run_mock(self, output_dir: Path, *, case_limit: int | None = None):
+        client = build_default_mock_client(
+            self.fixture,
+            self.config,
+            case_limit=case_limit,
+        )
         artifacts = run_pilot(
             fixture=self.fixture,
             config=self.config,
             client=client,
             output_dir=output_dir,
             run_mode="mock",
+            case_limit=case_limit,
         )
         return client, artifacts
 
     def test_config_fixes_model_seed_temperature_and_sessions(self) -> None:
         self.assertIn("SYNTHETIC", self.config.config_label)
         self.assertEqual("gemini", self.config.provider)
-        self.assertEqual("gemini-2.5-flash", self.config.model_name)
+        self.assertEqual("gemini-3.5-flash-lite", self.config.model_name)
         self.assertEqual(1729, self.config.seed)
         self.assertEqual(0.0, self.config.temperature)
         self.assertEqual(3, self.config.summary_sessions)
+        self.assertEqual(8.0, self.config.live_request_interval_seconds)
+        self.assertEqual(120.0, self.config.live_timeout_seconds)
+        self.assertEqual(5, self.config.live_max_retries)
+        self.assertEqual(8.0, self.config.live_retry_backoff_base_seconds)
 
-    def test_mock_run_writes_eighteen_question_results(self) -> None:
+    def test_live_client_uses_committed_pacing_and_retry_settings(self) -> None:
+        with patch.dict(
+            os.environ,
+            {"GEMINI_API_KEY": "TEST_DUMMY_KEY_NOT_A_CREDENTIAL"},
+            clear=True,
+        ):
+            client = build_live_client(self.config)
+
+        self.assertEqual(8.0, client.minimum_request_interval_seconds)
+        self.assertEqual(120.0, client.timeout_seconds)
+        self.assertEqual(5, client.max_retries)
+        self.assertEqual(8.0, client.backoff_base_seconds)
+
+    def test_mock_run_writes_results_for_all_twenty_cases(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             client, artifacts = self.run_mock(Path(directory))
             with artifacts.results_csv.open(encoding="utf-8", newline="") as handle:
@@ -59,13 +82,19 @@ class SyntheticRunnerTests(unittest.TestCase):
                 ).splitlines()
             ]
 
-        self.assertEqual(18, artifacts.question_count)
-        self.assertEqual(6, artifacts.persistence_count)
-        self.assertEqual(18, len(rows))
-        self.assertEqual(18, len(traces))
-        self.assertEqual(54, len(client.mock_calls))
+        self.assertEqual(180, artifacts.question_count)
+        self.assertEqual(60, artifacts.persistence_count)
+        self.assertEqual(180, len(rows))
+        self.assertEqual(180, len(traces))
+        self.assertEqual(540, len(client.mock_calls))
+        self.assertEqual(20, len({row["item_id"] for row in rows}))
         self.assertEqual({"gemini"}, {row["provider"] for row in rows})
         self.assertTrue(all(trace["provider"] == "gemini" for trace in traces))
+        self.assertTrue(all("SYNTHETIC" in row["case_label"] for row in rows))
+        self.assertEqual(
+            {"false", "true"},
+            {row["probe_requires_inference"] for row in rows},
+        )
         self.assertEqual(
             {"raw_notes", "notes_summaries", "provenance"},
             {row["condition"] for row in rows},
@@ -92,7 +121,7 @@ class SyntheticRunnerTests(unittest.TestCase):
         self.assertEqual(
             {
                 "raw_notes": 0,
-                "notes_summaries": 6,
+                "notes_summaries": 60,
                 "provenance": 0,
             },
             persistence_by_condition,
@@ -113,6 +142,7 @@ class SyntheticRunnerTests(unittest.TestCase):
         self.assertTrue(all(row["data_classification"] == "SYNTHETIC" for row in rows))
         self.assertTrue(all("SYNTHETIC" in row["fixture_label"] for row in rows))
         self.assertTrue(all(trace["synthetic"] is True for trace in traces))
+        self.assertTrue(all("SYNTHETIC" in trace["case_label"] for trace in traces))
         self.assertTrue(
             all(trace["trace_type"] == "SYNTHETIC_QUESTION_TRACE" for trace in traces)
         )
@@ -179,7 +209,7 @@ class SyntheticRunnerTests(unittest.TestCase):
             for call in client.mock_calls
             if "Task:\nQuestion:" in call.payload["input"]
         ]
-        self.assertEqual(18, len(question_calls))
+        self.assertEqual(180, len(question_calls))
         for call in question_calls:
             self.assertNotIn("previous_response_id", call.payload)
 
@@ -197,6 +227,25 @@ class SyntheticRunnerTests(unittest.TestCase):
         self.assertEqual(first_csv, second_csv)
         self.assertEqual(first_jsonl, second_jsonl)
 
+    def test_case_limit_runs_three_cases_in_every_memory_design(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            client, artifacts = self.run_mock(Path(directory), case_limit=3)
+            with artifacts.results_csv.open(encoding="utf-8", newline="") as handle:
+                rows = list(csv.DictReader(handle))
+
+        self.assertEqual(27, artifacts.question_count)
+        self.assertEqual(9, artifacts.persistence_count)
+        self.assertEqual(81, len(client.mock_calls))
+        self.assertEqual(
+            {"veloran", "tessari", "orlune"},
+            {row["item_id"] for row in rows},
+        )
+        for condition in MemoryCondition:
+            self.assertEqual(
+                9,
+                sum(row["condition"] == condition.value for row in rows),
+            )
+
     def test_cli_defaults_to_mock_without_key_or_network(self) -> None:
         with tempfile.TemporaryDirectory() as directory, patch.dict(
             os.environ, {}, clear=True
@@ -204,7 +253,9 @@ class SyntheticRunnerTests(unittest.TestCase):
             "epistemics_memory.gemini_client.GeminiClient._get_sdk",
             side_effect=AssertionError("default CLI must not construct the SDK"),
         ):
-            exit_code = main(["run", "--output-dir", directory])
+            exit_code = main(
+                ["run", "--case-limit", "3", "--output-dir", directory]
+            )
 
             self.assertEqual(0, exit_code)
             self.assertTrue((Path(directory) / "mock_results.csv").is_file())
@@ -218,6 +269,11 @@ class SyntheticRunnerTests(unittest.TestCase):
 
         self.assertFalse(default_args.live)
         self.assertTrue(live_args.live)
+        self.assertIsNone(default_args.case_limit)
+        self.assertEqual(
+            3,
+            build_parser().parse_args(["run", "--case-limit", "3"]).case_limit,
+        )
 
 
 if __name__ == "__main__":

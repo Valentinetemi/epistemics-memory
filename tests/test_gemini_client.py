@@ -179,6 +179,22 @@ class GeminiEnvironmentSafetyTests(unittest.TestCase):
         self.assertNotIn(DUMMY_KEY, repr(client))
         self.assertNotIn("api_key", repr(client).lower())
 
+    def test_live_request_spacing_uses_configured_minimum_interval(self) -> None:
+        times = iter((100.0, 102.0, 111.0))
+        sleeps: list[float] = []
+        with patch.dict(os.environ, {"GEMINI_API_KEY": DUMMY_KEY}, clear=True):
+            client = GeminiClient(
+                minimum_request_interval_seconds=8.0,
+                sleep=sleeps.append,
+                monotonic=lambda: next(times),
+            )
+
+        client._wait_for_request_slot()
+        client._wait_for_request_slot()
+        client._wait_for_request_slot()
+
+        self.assertEqual([6.0, 5.0], sleeps)
+
 
 if __name__ == "__main__":
     unittest.main()

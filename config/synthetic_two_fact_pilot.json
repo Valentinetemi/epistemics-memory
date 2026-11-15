@@ -1,0 +1,7 @@
+{
+  "config_label": "SYNTHETIC TWO-FACT PILOT CONFIG",
+  "model_name": "gpt-4.1-mini-2025-04-14",
+  "seed": 1729,
+  "temperature": 0.0,
+  "summary_sessions": 3
+}

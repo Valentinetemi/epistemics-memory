@@ -1,6 +1,6 @@
 {
-  "fixture_label": "TEST FIXTURE — ALL ENTITIES AND FACTS ARE INVENTED",
-  "fixture_version": "two-fact-pilot-v1",
+  "fixture_label": "SYNTHETIC TEST FIXTURE — ALL ENTITIES AND FACTS ARE INVENTED",
+  "fixture_version": "synthetic-two-fact-pilot-v1",
   "items": [
     {
       "item_id": "veloran",

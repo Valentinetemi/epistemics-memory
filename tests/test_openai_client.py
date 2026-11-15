@@ -86,6 +86,7 @@ class MockModeTests(unittest.TestCase):
             instructions="Return JSON.",
             input_text="Use the test schema.",
             text_format=text_format,
+            temperature=0.0,
         )
 
         call = client.mock_calls[0]
@@ -93,6 +94,7 @@ class MockModeTests(unittest.TestCase):
         self.assertEqual(MODEL, call.payload["model"])
         self.assertEqual("Return JSON.", call.payload["instructions"])
         self.assertEqual("Use the test schema.", call.payload["input"])
+        self.assertEqual(0.0, call.payload["temperature"])
         self.assertEqual(text_format, call.payload["text"]["format"])
         self.assertFalse(hasattr(call, "headers"))
 

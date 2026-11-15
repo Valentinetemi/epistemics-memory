@@ -1,4 +1,4 @@
-"""Load and validate the deliberately invented pilot test fixture."""
+"""Load and validate the explicitly synthetic, invented pilot test fixture."""
 
 from __future__ import annotations
 
@@ -58,8 +58,8 @@ def load_fixture(path: Path) -> PilotFixture:
 
     data = json.loads(path.read_text(encoding="utf-8"))
     label = _required_text(data.get("fixture_label"), "fixture_label")
-    if "TEST FIXTURE" not in label or "INVENTED" not in label:
-        raise ValueError("fixture_label must clearly identify invented test data")
+    if not all(marker in label for marker in ("SYNTHETIC", "TEST FIXTURE", "INVENTED")):
+        raise ValueError("fixture_label must clearly identify synthetic invented test data")
 
     raw_items = data.get("items")
     if not isinstance(raw_items, list) or len(raw_items) != 2:

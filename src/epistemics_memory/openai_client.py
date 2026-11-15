@@ -205,6 +205,7 @@ class ResponsesClient:
         instructions: str,
         input_text: str,
         text_format: Mapping[str, Any] | None = None,
+        temperature: float | None = None,
     ) -> ResponseResult:
         """Create one independent, non-streaming response."""
 
@@ -212,11 +213,19 @@ class ResponsesClient:
             raise ValueError("instructions must be non-empty")
         if not input_text.strip():
             raise ValueError("input_text must be non-empty")
+        if temperature is not None and (
+            isinstance(temperature, bool)
+            or not isinstance(temperature, (int, float))
+            or not 0 <= temperature <= 2
+        ):
+            raise ValueError("temperature must be between 0 and 2")
         payload: dict[str, Any] = {
             "model": self.model,
             "instructions": instructions,
             "input": input_text,
         }
+        if temperature is not None:
+            payload["temperature"] = float(temperature)
         if text_format is not None:
             payload["text"] = {"format": copy.deepcopy(dict(text_format))}
 

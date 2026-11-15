@@ -1,4 +1,4 @@
-"""Tests for the explicitly invented two-fact software fixture."""
+"""Tests for the explicitly synthetic, invented two-fact software fixture."""
 
 from __future__ import annotations
 
@@ -10,13 +10,16 @@ from pathlib import Path
 from epistemics_memory.fixtures import load_fixture
 
 
-FIXTURE_PATH = Path(__file__).parents[1] / "fixtures" / "two_fact_pilot.json"
+FIXTURE_PATH = (
+    Path(__file__).parents[1] / "fixtures" / "synthetic_two_fact_pilot.json"
+)
 
 
 class FixtureTests(unittest.TestCase):
-    def test_fixture_is_labeled_invented_and_has_fixed_shape(self) -> None:
+    def test_fixture_is_labeled_synthetic_invented_and_has_fixed_shape(self) -> None:
         fixture = load_fixture(FIXTURE_PATH)
 
+        self.assertIn("SYNTHETIC", fixture.fixture_label)
         self.assertIn("TEST FIXTURE", fixture.fixture_label)
         self.assertIn("INVENTED", fixture.fixture_label)
         self.assertEqual(2, len(fixture.items))
@@ -31,7 +34,7 @@ class FixtureTests(unittest.TestCase):
             path = Path(directory) / "fixture.json"
             path.write_text(json.dumps(data), encoding="utf-8")
 
-            with self.assertRaisesRegex(ValueError, "invented test data"):
+            with self.assertRaisesRegex(ValueError, "synthetic invented test data"):
                 load_fixture(path)
 
 

@@ -61,7 +61,7 @@ python3 -m unittest discover tests
 
 All data is synthetic. No real user data was used.
 
-## References
+### References
 
 - Johnson, M. K., Hashtroudi, S., and Lindsay, D. S. (1993). Source monitoring. *Psychological Bulletin*, 114(1), 3–28.
 - Packer, C., et al. (2023). MemGPT: Towards LLMs as Operating Systems. arXiv:2310.08560.

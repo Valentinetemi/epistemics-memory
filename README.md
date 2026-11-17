@@ -1,4 +1,4 @@
-# epistemics-memory
+### epistemics-memory
 
 When something is deleted from an AI agent's memory, is it really gone?
 
@@ -6,7 +6,7 @@ AI agents now keep long-term memory about their users, and users can ask them to
 
 Humans work the same way. When a friend tells me something and asks me to forget it, I stop talking about it, but I don't really forget it. Psychology calls this source monitoring: we can lose track of where a belief came from while still holding it (Johnson et al., 1993).
 
-## What it does
+### What it does
 
 A small test harness that checks whether an agent still holds a belief after its source memory is deleted. It compares three memory designs:
 
@@ -16,7 +16,7 @@ A small test harness that checks whether an agent still holds a belief after its
 
 Each case plants a false claim in memory, builds summaries, deletes the source, then asks fresh probes. Each answer is scored as persisted, reverted, or unknown/conflict. The scoring rules were frozen before the first live run: see [docs/scoring-rules.md](docs/scoring-rules.md).
 
-## Pilot results
+### Pilot results
 
 Belief persistence after source deletion (3 synthetic cases × 3 probes per design, `gemini-3.5-flash-lite`, temperature 0):
 
@@ -28,7 +28,7 @@ Belief persistence after source deletion (3 synthetic cases × 3 probes per desi
 
 When the agent kept summaries, the deleted belief persisted in every probe. The summary acts as a second copy of the deleted fact that deletion does not reach. This is a small pilot signal, not a robust estimate: the probes come from only 3 cases and are not independent, the fixtures are synthetic, and only one model was tested.
 
-## Run it
+### Run it
 
 Requires Python 3.11+.
 
@@ -51,13 +51,13 @@ Run the tests:
 python3 -m unittest discover tests
 ```
 
-## Next steps
+### Next steps
 
 - Finish the full 20-case run (already in `fixtures/`)
 - Test more models
 - Measure how much useful memory provenance tracking costs
 
-## Notes
+### Notes
 
 All data is synthetic. No real user data was used.
 
